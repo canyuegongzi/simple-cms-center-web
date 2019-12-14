@@ -4,11 +4,12 @@ window.ENV = {
     // domain: 'http://127.0.0.1:8882',
     // domain: 'http://47.106.104.22:8882',
     casDomain: '/user-login-cas-web', //cas服务
-    wgmsBaseWeb: 'http://47.106.104.22:8882',
-    envStandardManagerWebDomain: 'http://wgms.dev.fpi-inc.site/esms/api/v1.0', // 水环境标准管理系统
-    envBasicInformationManagerWebDomain: 'http://wgms.dev.fpi-inc.site/basic-information-manager-server/api/v2.0', // 环境基础信息管理系统
-    permissionDomain: 'http://wgms.dev.fpi-inc.site/bsp-permission-server', //权限服务
-    userDomain: 'http://wgms.dev.fpi-inc.site/simple-user-center-server',//用户服务
+    wgmsBaseWeb: 'http://127.0.0.1:8882',
+    // wgmsBaseWeb: 'http://47.106.104.22:8882',
+    envStandardManagerWebDomain: '',
+    envBasicInformationManagerWebDomain: '',
+    permissionDomain: '', //权限服务
+    userDomain: '',//用户服务
     webHomePage: '/wgms-base-web', //cas跳转地址
     fileDomain: 'http://47.106.104.22:8883/qiniu/uploadQiniu', // 文件服务
     sysConfig: {
