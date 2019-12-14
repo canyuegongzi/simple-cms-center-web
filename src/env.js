@@ -11,6 +11,6 @@ window.ENV = {
     webHomePage: '/wgms-base-web', //cas跳转地址
     fileDomain: 'http://47.106.104.22:8883/qiniu/uploadQiniu', // 文件服务
     sysConfig: {
-        factorCategoryCode : 'w'
+        factorCategoryCode : 'whhhhhh'
     }
  }
