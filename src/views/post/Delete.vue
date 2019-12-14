@@ -1,7 +1,7 @@
 <template lang="pug">
     .container
-        base-header(title="文章中心" @editRow="editRow" @deleteRow="deleteRow")
-        base-table(:dataFormat="tableColumn" :allowIndex="true" :allowDeleteData="allowDeleteData" :tableData="tableData"  @editRow="editRow" @deleteRow="deleteRow" :handleSelectionChange="handleSelectionChange")
+        base-header(title="回收站" @editRow="editRow" @deleteRow="deleteRow" :isShowTool="false")
+        base-table(:dataFormat="tableColumn" :allowEdit="false" :allowIndex="false" :allowDeleteData="allowDeleteData" :tableData="tableData" :reCover="true" @reCoverPost="reCoverPost" @editRow="editRow" @deleteRow="deleteRow" :handleSelectionChange="handleSelectionChange")
             .search-items(slot="table-tools")
                 .search-item
                     el-select(v-model="query.tags" @change="getData('search')"  @keyup.enter.native="getData('search')" placeholder="请选择标签" size="mini" suffix-icon="el-icon-search")
@@ -34,14 +34,15 @@
     import BaseHeader from '@/components/table-page/BaseHeader.vue';
     import BaseTable from '@/components/table-page/BaseTable.vue';
     import { $post, $get } from "@/utils/feth";
-    import {categoryApi, postApi, tagApi} from '@/api/api';
+    import { postApi} from '@/api/api';
     import Rule from "@/type/Rule";
     import SelectOption from "@/type/SelectOption";
     import { confirmDelete, responseMsg } from "@/utils/response";
     import {listToTree} from '@/utils/tree-data';
     import PostInfo from "./PostInfo";
-    import Tag, {TagOption} from "@/views/post/Tag";
-    import {CategoryOption} from "@/views/post/Category";
+    import {CategoryOption} from "./Category";
+    import Tag, {TagOption} from "./Tag";
+    import {categoryApi, tagApi} from "../../api/api";
     @Component({
         components: {
             BaseHeader,
@@ -110,17 +111,17 @@
         public userSelectOptions: SelectOption[] = [];
         public organizationSelectOptions: SelectOption[] = [];
         public categoryId: any = "";
-        public authTreeData: any = [];
         public tagList: TagOption[] = [];
         public categoryList: CategoryOption[] = [];
         public categoryData: any = [];
+        public authTreeData: any = [];
 
         @Watch("currentPage", { deep: true, immediate: false })
-        public currentPageChange(val: any, oldVal: any) {
-            this.getData();
+        public async currentPageChange(val: any, oldVal: any) {
+            await this.getData();
         }
         public editRow(data: any) {
-           // this.dialogVisible = true;
+            // this.dialogVisible = true;
             this.dialogTitle = data != "editRow" ? "编辑文章" : "新增文章";
             if (data != "editRow") {
                 this.categoryId = data.row.id;
@@ -131,17 +132,19 @@
 
         }
 
-        public deleteRow(data: any) {
-            const ids = data == "deleteRow" ? this.selectedRow : [data.row.id];
+        /**
+         * 恢复文章
+         */
+        public reCoverPost(data: any) {
+            const ids = data == "reCover" ? this.selectedRow : [data.row.id];
             if (ids.length < 1 || ids === null) {
                 this.$message({
-                    message: "请先选择要删除的数据！",
+                    message: "请先选择要恢复的数据！",
                     type: "warning",
                 });
                 return false;
             }
-            console.log(ids);
-            confirmDelete(postApi.delete.url, this.getData, { id: ids });
+            confirmDelete(postApi.reCover.url, this.getData, { id: ids });
         }
 
         /**
@@ -150,7 +153,7 @@
          * @returns {boolean}
          */
         public allowDeleteData(row: any) {
-            return true;
+            return false;
         }
 
         /**
@@ -176,6 +179,7 @@
                 this.currentPage = 1;
             }
             const response: any = await $get(postApi.list.url, {
+                isDelete: 1,
                 page: this.currentPage,
                 pageSize: this.pageSize,
                 title: this.query.queryStr,
@@ -275,13 +279,13 @@
         /**
          * 弹窗取消
          */
-        private cancelFun() {
+        private async cancelFun() {
             this.dialogVisible = false;
             this.categoryId = "";
             this.formEditFlag = false;
             this.dialogUserVisible = false;
             this.PostInfo = new PostInfo();
-            this.getData();
+            await this.getData();
         }
 
         /**

@@ -188,6 +188,10 @@ export const postApi = {
     method: 'get',
     url: '/post/list',
   },
+  reCover: {
+    method: 'delete',
+    url: '/post/recover',
+  },
 };
 
 export const cmmentApi = {

@@ -94,6 +94,21 @@ export const data = {
             createUserId: 1,
           },
         },
+        {
+          entity: {
+            id: 36,
+            parentMenuId: 21,
+            name: "/postManage/deleteList",
+            icon: "el-icon-phone-outline\r\n",
+            alias: "回收站",
+            state: "ENABLE",
+            sort: 0,
+            value: "/postManage/deleteList",
+            type: "NONE",
+            discription: "用于文章管理的菜单",
+            createUserId: 1,
+          },
+        },
       ],
     },
     {

@@ -30,6 +30,11 @@ export const route = [
       component: () => import('./views/post/Index.vue'),
     },
     {
+        path: '/postManage/deleteList',
+        name: 'post-index',
+        component: () => import('./views/post/Delete.vue'),
+    },
+    {
         path: '/postManage/postAdd',
         name: 'post-add',
         component: () => import('./views/post/PostAdd.vue'),

@@ -70,13 +70,10 @@
          * 获取文章的详情
          */
         private async getInfo() {
-            console.log('获取详情');
-            console.log(this.postId);
             this.headerTitle = '编辑文章';
             const res: any = await $get(postApi.info.url, {
                 id: this.postId,
             });
-            console.log(res.data.data);
             const post: any = res.data.data;
             const dealTags = (tags: Tag[]) => {
                 const result: Array<number | string> = [];

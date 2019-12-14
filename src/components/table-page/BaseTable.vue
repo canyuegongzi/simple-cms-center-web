@@ -23,6 +23,7 @@
                         a(v-show="allowDeleteData(scope.row)" class="operate delete" @click="deleteRow(scope)") 删除
                         a(v-show="isGiveAuth" class="operate delete" @click="giveAuth(scope)") 授权
                         a(v-show="isPerson" class="operate delete" @click="givePerson(scope)") 成员
+                        a(v-show="reCover" class="operate delete" @click="reCoverPost(scope)") 恢复
             template(v-if="customTable")
                 slot(name="custom-table")
         .pagination.txt-right
@@ -52,6 +53,8 @@
     public customTable!: boolean;
     @Prop({ default: false })
     public isGiveAuth!: boolean;
+    @Prop({ default: false })
+    public reCover!: boolean;
     @Prop({ default: false })
     public isPerson!: boolean;
     @Prop({ default: () => ({}) })
@@ -98,6 +101,12 @@
     public giveAuth(data: any): any {
       return data;
     }
+
+    @Emit('reCoverPost')
+    public reCoverPost(data: any): any {
+        return data;
+    }
+
 
     /**
      * 选中

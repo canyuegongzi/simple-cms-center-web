@@ -2,6 +2,7 @@
  * @author fei_yong
  * @date 2019-09-27 23:47
  */
+const webpack = require('webpack')
 module.exports = {
     publicPath: './', // 部署应用时的根路径(默认'/'),也可用相对路径(存在使用限制)
     outputDir: 'dist', // 运行时生成的生产环境构建文件的目录(默认''dist''，构建之前会被清除)
@@ -29,10 +30,16 @@ module.exports = {
                 'image': 'src/images',
                 'util': 'src/utils'
             }
-        }
+        },
+        plugins: [
+            new webpack.DllReferencePlugin({
+                context: process.cwd(),
+                manifest: require('./public/vendor/vendor-manifest.json')
+            })
+        ]
     },
     lintOnSave: true, // 是否在保存的时候检查
-    productionSourceMap: true, // 生产环境是否生成 sourceMap 文件
+    productionSourceMap: false, // 生产环境是否生成 sourceMap 文件
     css: {
         extract: true, // 是否使用css分离插件 ExtractTextPlugin
         sourceMap: true, // 开启 CSS source maps

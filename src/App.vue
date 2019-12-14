@@ -1,16 +1,16 @@
 <style lang="stylus">
 </style>
 <template lang="pug">
-  div(id="root-view")
-    el-container(style="height: 100%")
-      el-aside(width="200px" style="height: 100%")
-        Aside(:menus="menus")
-      el-container()
-        el-header#root-header
-            Header()
-        el-main(style="padding: 0")
-            el-scrollbar(style="height:100%;" class="fpi-scroll")
-                router-view(id="root-main")
+    div(id="root-view")
+        el-container(style="height: 100%")
+            el-aside(width="200px" style="height: 100%" v-if="!session$.hideMenus" :class="{absolute: /^\\/map/.test($route.path)}")
+                Aside(:menus="menus")
+            el-container()
+                el-header#root-header(v-if="!session$.hideMenus" :class="{absolute: /^\\/map/.test($route.path)}")
+                    Header()
+                el-main(style="padding: 0")
+                    el-scrollbar(style="height:100%;" class="fpi-scroll")
+                        router-view(id="root-main")
 </template>
 <script lang="ts">
   import "@/styles/app.styl";
