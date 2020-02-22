@@ -3,7 +3,7 @@ window.ENV = {
     domain: 'http://canyuegongzi.xyz',
     casDomain: '/user-login-cas-web', //cas服务
     // wgmsBaseWeb: 'http://127.0.0.1:8882',
-    wgmsBaseWeb: 'http://47.106.104.22:8882',
+    wgmsBaseWeb: 'http://127.0.0.1:8882',
     envStandardManagerWebDomain: '',
     envBasicInformationManagerWebDomain: '',
     permissionDomain: '', //权限服务

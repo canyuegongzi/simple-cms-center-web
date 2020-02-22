@@ -6,4 +6,5 @@ export default class CategoryInfo {
     public parentId?: string | number = '';
     public parentName?: string  = '';
     public sort?: any = '';
+    public isRoot?: number = 1;
 }

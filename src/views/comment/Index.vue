@@ -4,7 +4,10 @@
         base-table(:dataFormat="tableColumn" :allowEdit="false" :allowIndex="true" :allowDeleteData="allowDeleteData" :tableData="tableData"  @editRow="editRow" @deleteRow="deleteRow" :handleSelectionChange="handleSelectionChange")
             .search-items(slot="table-tools")
                 .search-item
-                    el-input(v-model="query.queryStr" @blur="getData('search')"  @keyup.enter.native="getData('search')" placeholder="请输评论内容搜索" size="mini" suffix-icon="el-icon-search")
+                    el-input(v-model="query.queryStr" placeholder="请输入评论内容搜索" size="mini" suffix-icon="el-icon-search")
+                    el-input(v-model="query.postStr" placeholder="请输入文章标题搜索" size="mini" suffix-icon="el-icon-search")
+                    el-date-picker(style="margin-left: 8px" value-format="timestamp" v-model="query.time" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" size="mini")
+                    el-button(icon="el-icon-search" style="margin-left: 8px" type="primary" @click="getData('search')" size="mini") 搜索
             el-pagination(slot="table-pagination" @size-change="handleSizeChange" :current-page.sync="currentPage"
             :page-size="pageSize"  layout="total, sizes, prev, pager, next, jumper" :total="total")
         <!--el-dialog(:visible.sync="dialogVisible" @close="dialogClose" width="450px")-->
@@ -56,6 +59,8 @@
         public pageTitle: string = "新增";
         public query: any = {
             queryStr: "",
+            postStr: '',
+            time: ''
         };
         public organUser: any = {
             orId: '',
@@ -134,7 +139,10 @@
             const response: any = await $get(cmmentApi.list.url, {
                 page: this.currentPage,
                 pageSize: this.pageSize,
-                title: this.query.queryStr,
+                title: this.query.postStr,
+                content: this.query.queryStr,
+                startTime: Array.isArray(this.query.time) && this.query.time.length > 1 ? this.query.time[0] : '',
+                endTime: Array.isArray(this.query.time) && this.query.time.length > 1 ? this.query.time[1] : '',
             });
             const dealName = (arr: any) => {
                 const name: any[] | string[] = [];

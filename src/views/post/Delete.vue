@@ -4,13 +4,14 @@
         base-table(:dataFormat="tableColumn" :allowEdit="false" :allowIndex="false" :allowDeleteData="allowDeleteData" :tableData="tableData" :reCover="true" @reCoverPost="reCoverPost" @editRow="editRow" @deleteRow="deleteRow" :handleSelectionChange="handleSelectionChange")
             .search-items(slot="table-tools")
                 .search-item
-                    el-select(v-model="query.tags" @change="getData('search')"  @keyup.enter.native="getData('search')" placeholder="请选择标签" size="mini" suffix-icon="el-icon-search")
+                    el-select(v-model="query.tags"  placeholder="请选择标签" size="mini" suffix-icon="el-icon-search")
                         el-option(v-for="item in tagList" :value="item.id" :label="item.name")
-                    el-select(v-model="query.recommend" @change="getData('search')"  @keyup.enter.native="getData('search')" placeholder="请选择是否推荐" size="mini" suffix-icon="el-icon-search")
+                    el-select(v-model="query.recommend" placeholder="请选择是否推荐" size="mini" suffix-icon="el-icon-search")
                         el-option(v-for="item in recommendOptions" :value="item.id" :label="item.name")
-                    el-select(v-model="query.categoryId" @change="getData('search')"  @keyup.enter.native="getData('search')" placeholder="请选择分类" size="mini" suffix-icon="el-icon-search")
-                        el-option(v-for="item in categoryData" :value="item.id" :label="item.name")
-                    el-input(v-model="query.queryStr" @blur="getData('search')"  @keyup.enter.native="getData('search')" placeholder="请输入文章名称搜索" size="mini" suffix-icon="el-icon-search")
+                    el-cascader(:options="categoryDataTree" id="cascader" :show-all-levels="false" filterable style="line-height: 25px;" :props="{  expandTrigger: 'hover', checkStrictly: true, value: 'id', label: 'name' }" clearable v-model="query.categoryId")
+                    el-date-picker(style="margin-left: 8px" value-format="timestamp" v-model="query.time" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" size="mini")
+                    el-input(v-model="query.queryStr" style="margin-left: 8px" placeholder="请输入文章名称搜索" size="mini" suffix-icon="el-icon-search")
+                    el-button(icon="el-icon-search" type="primary" @click="getData('search')" size="mini") 搜索
             el-pagination(slot="table-pagination" @size-change="handleSizeChange" :current-page.sync="currentPage"
             :page-size="pageSize"  layout="total, sizes, prev, pager, next, jumper" :total="total")
         el-dialog(:visible.sync="dialogVisible" @close="dialogClose" width="450px")
@@ -63,12 +64,12 @@
             form1: HTMLFormElement;
         };
         public tableColumn = [
-            { prop: "title", label: "题目", width: 120 },
-            { prop: "desc", label: "描述", width: 120 },
+            { prop: "title", label: "题目"},
+            { prop: "desc", label: "描述"},
             { prop: "linkImg", label: "标题图片", width: 200 },
-            { prop: "categoryName", label: "分类" },
-            { prop: "tagName", label: "标题" },
-            { prop: "time", label: "发表时间" },
+            { prop: "categoryName", label: "分类", width: 100 },
+            { prop: "tagName", label: "标签", width: 160 },
+            { prop: "deleteTime", label: "发表时间", width: 100  },
             { prop: "likes", label: "喜欢", width: 60 },
             { prop: "views", label: "阅读量", width: 60 },
         ];
@@ -83,7 +84,8 @@
             queryStr: "",
             tags: '',
             categoryId: '',
-            recommend: ''
+            recommend: '',
+            time: ''
         };
         public recommendOptions: any = [
             {
@@ -113,6 +115,7 @@
         public categoryId: any = "";
         public tagList: TagOption[] = [];
         public categoryList: CategoryOption[] = [];
+        public categoryDataTree: any = [];
         public categoryData: any = [];
         public authTreeData: any = [];
 
@@ -144,7 +147,16 @@
                 });
                 return false;
             }
-            confirmDelete(postApi.reCover.url, this.getData, { id: ids });
+            this.$confirm("此操作将恢复该数据, 是否继续?", "提示", {
+                confirmButtonText: "确定",
+                cancelButtonText: "取消",
+                type: "warning",
+            }).then(() => {
+                Vue.prototype.$post(postApi.reCover.url, { id: ids }).then((response: any) => {
+                    console.log(response);
+                    responseMsg(response.data.success, "删除", this.getData);
+                });
+            }).catch(() => { });
         }
 
         /**
@@ -183,9 +195,11 @@
                 page: this.currentPage,
                 pageSize: this.pageSize,
                 title: this.query.queryStr,
-                tags: this.query.tags,
+                tagId: this.query.tags,
                 categoryId: this.query.categoryId,
                 recommend: this.query.recommend,
+                startTime: Array.isArray(this.query.time) && this.query.time.length > 1 ? this.query.time[0] : '',
+                endTime: Array.isArray(this.query.time) && this.query.time.length > 1 ? this.query.time[1] : '',
             });
             const dealName = (arr: any) => {
                 const name: any[] | string[] = [];
@@ -201,6 +215,7 @@
                 item.editFlag = 1;
                 item.categoryName = item.category.name || '';
                 item.tagName = dealName(item.tags).join('、');
+                item.postTime = item.updateTime || item.createTime;
             });
             const totalPageNumber = Math.ceil(this.total / this.pageSize);
             if (totalPageNumber < this.currentPage && this.total !== 0) {
@@ -230,16 +245,12 @@
          * 获取所有分类
          */
         private async getCategoryList() {
-            const res: any = await $get(categoryApi.list.url, {
-                page: 1,
-                pageSize: 150,
-                name: '',
-            });
-            this.categoryData = res.data.data.data;
-            this.categoryData.unshift({
-                id: '',
-                name: '全部',
-            });
+            const res: any = await $get(categoryApi.all.url, {});
+            this.categoryData = res.data.data;
+            const treeData = res.data.data
+                ? listToTree(res.data.data, 'id', 'parentId', 'children')
+                : [];
+            this.categoryDataTree = treeData
         }
 
         /**

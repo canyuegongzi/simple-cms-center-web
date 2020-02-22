@@ -143,5 +143,37 @@ export const data = {
         },
       ],
     },
+    {
+      entity: {
+        id: 236,
+        parentMenuId: 0,
+        name: "loveManage",
+        icon: "el-icon-news",
+        alias: "喜欢管理",
+        state: "ENABLE",
+        sort: 1,
+        value: null,
+        type: "NONE",
+        discription: "用于用户管理的菜单",
+        createUserId: 1,
+      },
+      childs: [
+        {
+          entity: {
+            id: 249,
+            parentMenuId: 236,
+            name: "/loveManage/loveList",
+            icon: "el-icon-phone-outline\r\n",
+            alias: "喜欢中心",
+            state: "ENABLE",
+            sort: 0,
+            value: "/loveManage/loveList",
+            type: "NONE",
+            discription: "用于评论管理的菜单",
+            createUserId: 1,
+          },
+        },
+      ],
+    },
   ],
 };

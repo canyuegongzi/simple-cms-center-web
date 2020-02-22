@@ -15,9 +15,12 @@
                     el-form(:model="categoryInfo" :rules="categoryInfoRules" ref="form" label-width="110px" class="input-width")
                         el-form-item(label="名称：" prop="name")
                             el-input(v-model="categoryInfo.name" size="mini"  placeholder="请输入名称")
-                        el-form-item(label="父级分类：" prop="parentId")
-                            el-select(v-model="categoryInfo.parentId" :disabled="formEditFlag" filterable size='mini' style="width:100%;height: 28px"  class="options")
-                                el-option(v-for="(item, index) in organizationSelectOptions" :label="item.label" :value="item.value" :key="item.value")
+                        el-form-item(label="是否一级：" prop="isRoot")
+                            el-radio-group(v-model="categoryInfo.isRoot" @change="isRootChange")
+                                el-radio(:label="1") 是
+                                el-radio(:label="0") 否
+                        el-form-item(label="父级分类：" prop="parentId" v-show="categoryInfo.isRoot === 0")
+                                el-tree-select(v-model="categoryInfo.parentId" popoverClass="elTreeSelectClass" selectClass="elTreeSelectClass" :style="elTreeSelectStyle" ref="treeSelect" :selectParams="selectTreeParams" :treeParams="treeParams")
                         el-form-item(label="编码：" prop="code")
                             el-input(v-model="categoryInfo.code" size="mini" :disabled="formEditFlag" placeholder="请输入编码")
                         el-form-item(label="排序：" prop="sort")
@@ -27,11 +30,11 @@
             div(slot="footer")
                 el-button(@click="cancelFun" size="mini") 取消
                 el-button(type="primary" @click="okFun" size="mini") 确定
-        el-dialog(:visible.sync="dialogChartAuth" @close="dialogClose" width="800px")
+        el-dialog(:visible.sync="dialogChartAuth" :fullscreen="true" @close="dialogClose" width="800px")
             span(slot="title") 分类架构
             div(style="height: 370px;overflow: auto; padding: 0")
                 el-scrollbar(style="height:100%;")
-                    vue2-org-tree(:render-content="renderContent" @on-node-click="onNodeClick" name="test" :horizontal="horizontal" :collapsable="collapsable"  @on-expand="onExpand" :data="authTreeData" :prop="{label: 'name', children: 'children', expand: 'expand'}")
+                    vue2-org-tree(:render-content="renderContent" @on-node-click="onNodeClick" name="test" :horizontal="horizontal" :collapsable="collapsable"  @on-expand="onExpand" :data="cateGoryAllTreeData" :prop="{label: 'name', children: 'children', expand: 'expand'}")
 </template>
 
 <script lang="ts">
@@ -80,11 +83,12 @@
         public $refs!: {
             form: HTMLFormElement;
             form1: HTMLFormElement;
+            treeSelect: any;
         };
         public tableColumn = [
             { prop: "name", label: "名称", width: 120 },
             { prop: "code", label: "编码", width: 120 },
-            { prop: "parentName", label: "上级分类", width: 120 },
+            { prop: "crateTime", label: "时间", width: 160 },
             { prop: "desc", label: "描述" },
         ];
         public categoryInfo = new CategoryInfo();
@@ -101,6 +105,30 @@
             orId: '',
             userId: [],
         };
+        public elTreeSelectStyle = {
+            width: '290px',
+            height: '28px'
+        };
+        public selectTreeParams = {
+            multiple: false,
+            clearable: true,
+            filterable: true,
+            placeholder: '请选择'
+        };
+        public treeParams = {
+            data: [],
+            clickParent: true,
+            filterable: true,
+            'check-strictly': true,
+            'default-expand-all': false,
+            'expand-on-click-node': false,
+            props: {
+                children: 'children',
+                label: 'name',
+                disabled: 'disabled',
+                value: 'id'
+            }
+        }
         public dialogVisible: boolean = false;
         public dialogChartAuth: boolean = false;
         public dialogUserVisible: boolean = false;
@@ -110,6 +138,8 @@
         public organizationSelectOptions: SelectOption[] = [];
         public categoryId: any = "";
         public authTreeData: any = [];
+        public cateGoryTreeData: any = [];
+        public cateGoryAllTreeData: any = [];
         public horizontal: boolean =  false;
         public collapsable: boolean = true;
         public expandAll: boolean = false;
@@ -118,8 +148,17 @@
         public currentPageChange(val: any, oldVal: any) {
             this.getData();
         }
-        public editRow(data: any) {
+        public async editRow(data: any) {
             this.dialogVisible = true;
+            await this.getCategoryList();
+            this.$nextTick(() => {
+                if (this.$refs.treeSelect) {
+                    // @ts-ignore
+                    this.$refs.treeSelect.treeDataUpdateFun(this.cateGoryTreeData)
+                }
+            })
+            this.categoryInfo = new CategoryInfo();
+            this.categoryInfo.isRoot = 1;
             this.dialogTitle = data != "editRow" ? "编辑分类" : "新增分类";
             if (data != "editRow") {
                 this.categoryId = data.row.id;
@@ -137,8 +176,7 @@
                 });
                 return false;
             }
-            console.log(ids);
-            confirmDelete(organizationApi.delete.url, this.getData, { id: ids, isDeleteChild: 1 });
+            confirmDelete(categoryApi.delete.url, this.getData, { id: ids, isDeleteChild: 1 });
         }
 
         /**
@@ -200,19 +238,16 @@
          * 获取全部的功能
          */
         public async getCategoryList() {
-            const response: any = await $get(categoryApi.list.url, {
-                page: 1,
-                pageSize: 100000,
-                name: "",
-            });
-            this.organizationSelectOptions =
-                response.data && response.data.data
-                    ? this.dealCtegoryListData(response.data.data.data)
-                    : [];
+            const response: any = await $get(categoryApi.all.url, {});
             const treeData = response.data && response.data.data
-                ? listToTree(response.data.data.data, 'id', 'parentId', 'children')
+                ? listToTree(response.data.data, 'id', 'parentId', 'children')
                 : [];
-            this.authTreeData = treeData.length > 0 ? treeData[0] : {};
+            this.cateGoryTreeData = treeData.length > 0 ? treeData: [];
+            this.cateGoryAllTreeData = {
+                id: '-1',
+                children: treeData,
+                name: '类别架构'
+            }
             return false;
         }
 
@@ -268,6 +303,7 @@
         private async okFun() {
             let params: any;
             let api: string = "";
+            this.categoryInfo.parentId = this.categoryInfo.isRoot == 1 ? -1 : this.categoryInfo.parentId;
             if (this.dialogTitle.indexOf("新增") > -1) {
                 params = { ...this.categoryInfo };
                 api = categoryApi.add.url;
@@ -298,8 +334,10 @@
                 parentId: category.parentId,
                 code: category.code,
                 sort: category.sort,
+                isRoot: (category.parentId == -1 || category.parentId == '-1') ? 1 : 0,
             };
             this.formEditFlag = this.categoryInfo.parentId === -1 ? true : false;
+            this.isRootChange(this.categoryInfo.isRoot)
         }
 
         private openChartAuth() {
@@ -332,7 +370,7 @@
         }
 
         private expandChange() {
-            this.toggleExpand(this.authTreeData, this.expandAll);
+            this.toggleExpand(this.cateGoryAllTreeData, this.expandAll);
         }
 
         /**
@@ -362,6 +400,19 @@
          */
         private onNodeClick(e: any, data: any) {
             console.log(data);
+        }
+
+        public isRootChange (val: any) {
+            if (val == 1) {
+                this.categoryInfo.parentId = -1
+            } else {
+                this.$nextTick(() => {
+                    if (this.$refs.treeSelect) {
+                        // @ts-ignore
+                        this.$refs.treeSelect.treeDataUpdateFun(this.cateGoryTreeData)
+                    }
+                })
+            }
         }
 
         private async created() {

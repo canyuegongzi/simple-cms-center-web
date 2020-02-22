@@ -140,6 +140,10 @@ export const categoryApi = {
     method: 'get',
     url: '/category/categoryTree',
   },
+  all: {
+    method: 'get',
+    url: '/category/all',
+  },
 };
 export const tagApi = {
   add: {
@@ -214,6 +218,21 @@ export const cmmentApi = {
   list: {
     method: 'get',
     url: '/comment/list',
+  },
+};
+
+export const loveApi = {
+  add: {
+    method: 'post',
+    url: '/love/ok',
+  },
+  delete: {
+    method: 'post',
+    url: '/love/cancel',
+  },
+  list: {
+    method: 'get',
+    url: '/love/list',
   },
 };
 

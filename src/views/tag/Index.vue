@@ -57,6 +57,7 @@
         public tableColumn = [
             { prop: "name", label: "名称", width: 120 },
             { prop: "code", label: "编码", width: 120 },
+            { prop: "crateTime", label: "时间", width: 160 },
             { prop: "desc", label: "描述" },
         ];
         public tagInfo = new TagInfo();

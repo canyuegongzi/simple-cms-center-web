@@ -4,11 +4,11 @@
         .container-form
             el-form(ref="form" :model="post" :rules="postInfoRules" label-width="80px" size="mini")
                 el-form-item(label="文章标题" prop="title")
-                    el-input(v-model="post.title" size="mini")
+                    el-input(v-model="post.title" show-word-limit size="mini" maxlength="30")
                 el-form-item(label="文章概述" prop="desc")
-                    el-input(v-model="post.desc" type="textarea" size="mini")
+                    el-input(v-model="post.desc" type="textarea" show-word-limit size="mini" maxlength="300" :rows="4")
                 el-form-item(label="文章分类" prop="categoryId")
-                    treeselect(v-model="post.categoryId" :show-count="true" placeholder="请选择" :normalizer="normalizer" :treeProps="{}" :default-expand-level="4" :searchable="true" :multiple="false" :options="categoryData")
+                    el-tree-select(v-model="post.categoryId" id="cascader1" popoverClass="elTreeSelectClass" selectClass="elTreeSelectClass" :style="elTreeSelectStyle" ref="treeSelect" :selectParams="selectTreeParams" :treeParams="treeParams")
                 el-form-item(label="文章标签" prop="tags")
                     el-checkbox-group(v-model="post.tags" size="mini")
                         el-checkbox(v-for="item in tagList" :label="item.id" name="tag" :key="item.id") {{item.name}}
@@ -17,12 +17,12 @@
                         el-radio(:label="1") 是
                         el-radio(:label="0") 否
                 el-form-item(label="标题图片" prop="linkImg")
-                    el-upload(:show-file-list="false" class="avatar-uploader" :action="uploadImgApi" :on-success="handleAvatarSuccess")
+                    el-upload(:show-file-list="false" accept="png, jpg, JPG, gif, GIF " :limit="1" class="avatar-uploader" :action="uploadImgApi" :on-success="handleAvatarSuccess")
                         img(v-if="post.linkImg" :src="post.linkImg" class="avatar")
                         i(v-else class="el-icon-plus avatar-uploader-icon")
                 el-form-item(label="文章内容" prop="contentMd")
                     mavon-editor(v-model="post.contentMd" ref="md" @change="change" @imgAdd="imgAdd" style="min-height: 300px")
-                el-form-item()
+                el-form-item(style="display: flex; justify-content: center;")
                     el-button(type="primary" @click="okPost()") 提交
                     el-button(type="primary" @click="resetForm()") 重置
 </template>
@@ -38,6 +38,7 @@
     import Rule from "@/type/Rule";
     import {responseMsg} from "@/utils/response";
     import {throttle} from "@/utils/utils";
+    import {listToTree} from "@/utils/tree-data";
     @Component({
         components: {
             BaseHeader,
@@ -64,7 +65,33 @@
         public $refs!: {
             form: HTMLFormElement;
             md: HTMLFormElement,
+            treeSelect: any;
         };
+
+        public elTreeSelectStyle = {
+            width: '100%',
+            height: '28px'
+        };
+        public selectTreeParams = {
+            multiple: false,
+            clearable: true,
+            filterable: true,
+            placeholder: '请选择文章分类'
+        };
+        public treeParams = {
+            data: [],
+            clickParent: true,
+            filterable: true,
+            'check-strictly': true,
+            'default-expand-all': false,
+            'expand-on-click-node': false,
+            props: {
+                children: 'children',
+                label: 'name',
+                disabled: 'disabled',
+                value: 'id'
+            }
+        }
 
         /**
          * 获取文章的详情
@@ -110,8 +137,17 @@
          * 获取所有分类
          */
         private async getCategoryList() {
-            const res: any = await $get(categoryApi.tree.url, {});
-            this.categoryData = res.data.data.data;
+            const response: any = await $get(categoryApi.all.url, {});
+            const treeData = response.data && response.data.data
+                ? listToTree(response.data.data, 'id', 'parentId', 'children')
+                : [];
+            this.categoryData = treeData.length > 0 ? treeData: [];
+            this.$nextTick(() => {
+                if (this.$refs.treeSelect) {
+                    // @ts-ignore
+                    this.$refs.treeSelect.treeDataUpdateFun(this.categoryData)
+                }
+            })
 
         }
 
@@ -148,7 +184,8 @@
          */
         private change(value: string, render: any) {
             this.post.contentMd = value;
-            this.post.content = render;
+            // this.post.content = render;
+            this.post.content = '';
 
         }
 
@@ -241,5 +278,7 @@
         width 140px
         height 140px
         display block
+    .el-form-item
+        margin-bottom 24px !important
 
 </style>

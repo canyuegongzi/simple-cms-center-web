@@ -44,6 +44,11 @@ export const route = [
       name: 'comment-index',
       component: () => import('./views/comment/Index.vue'),
     },
+    {
+        path: '/loveManage/loveList',
+        name: 'love-index',
+        component: () => import('./views/love/Index.vue'),
+    },
   ];
 
 function beforeEach(to: { matched: { length: number; }; }, from: any, next: () => void) {

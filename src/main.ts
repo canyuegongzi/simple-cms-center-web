@@ -12,12 +12,15 @@ import treeTransfer from 'el-tree-transfer';
 import Vue2OrgTree from 'vue2-org-tree';
 import Treeselect from '@riophae/vue-treeselect';
 import mavonEditor from "mavon-editor";
+import ElTreeSelect from "el-tree-select";
 
 
 Vue.use(ElementUI);
 // @ts-ignore
 Vue.use(mavonEditor);
 Vue.use(Router);
+// @ts-ignore
+Vue.use(ElTreeSelect);
 Vue.mixin(global);
 Vue.mixin(session);
 Vue.config.productionTip = false;
